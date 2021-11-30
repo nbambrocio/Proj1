@@ -40,7 +40,7 @@ df["Cash Contributions"] = df["Cash Contributions Received from Other Sources"] 
 df["In-Kind Contributions"] = df["In-Kind Contributions Received from Other Sources"] +df["In-Kind Contributions Received from Political Party"]
 
 
-my_page = st.sidebar.radio('Page Navigation', ['Homepage', 'Data', 'Contributions', 'Heat Maps', 'Spider Maps'])
+my_page = st.sidebar.radio('Page Navigation', ['Homepage', 'Data', 'Contributions', 'Expense Breakdown','Heat Maps', 'Spider Maps'])
 
 if my_page == 'Homepage':
     #st.write("Powerpoint Presentation")
@@ -129,6 +129,37 @@ elif my_page == 'Contributions':
         plt.xlabel("Source of Contribution", fontsize=12)
         plt.xticks(rotation=45)
         plt.legend().remove()
+        st.pyplot(plt)
+        
+elif my_page == 'Expense Breakdown':
+    option_candidate = st.sidebar.selectbox('Which Senatorial Candidate Do You Want To See?', df['Candidate'].unique())
+    
+    spend_candidate = df[df['Candidate'] == option_candidate].groupby('Candidate')['Transportation and Communication','Labor','Supplies and Logistics'].sum()
+    
+    if spend_candidate.values.sum()== 0:
+        no_data = '<p style="font-family:sans-serif; color:Red; font-size: 50px;">NO EXPENSES DATA</p>'
+        st.write(no_data, unsafe_allow_html=True)
+    
+    else:
+        
+        spend_candidate.replace(0, float("NaN"), inplace=True)
+        spend_candidate.dropna(how='all', axis=1, inplace=True)
+        
+        labels = spend_candidate.columns
+        values = [x for x in spend_candidate.values.flatten()]
+    
+        #Using matplotlib
+        pie, ax = plt.subplots(figsize=[10,6])
+        labels = labels
+        plt.pie(x=values, autopct="%.1f%%", labels=labels, pctdistance=0.5)
+        plt.title("Expenses Breakdown", fontsize=14);
+
+        # add a circle at the center to transform it in a donut chart
+        my_circle=plt.Circle( (0,0), 0.7, color='white')
+        p=plt.gcf()
+        p.gca().add_artist(my_circle)
+
+        plt.show()
         st.pyplot(plt)
         
 elif my_page == 'Heat Maps':
